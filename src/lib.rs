@@ -1,4 +1,6 @@
+#![feature(proc_macro)]
 #![feature(use_extern_macros)]
+
 extern crate impl_sum_macro;
 
 mod impls;
