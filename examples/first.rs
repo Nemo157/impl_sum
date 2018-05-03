@@ -3,7 +3,11 @@
 
 extern crate impl_sum;
 
-use impl_sum::{impl_sum, Either2};
+use std::iter::FromIterator;
+use std::collections::HashSet;
+use std::collections::hash_map::RandomState;
+
+use impl_sum::{impl_sum, C};
 
 fn foo() -> impl Iterator<Item = u32> {
     vec![1, 2, 3].into_iter()
@@ -11,9 +15,9 @@ fn foo() -> impl Iterator<Item = u32> {
 
 fn bar(choose: bool) -> impl Iterator<Item = u32> {
     if choose {
-        Either2::A(vec![1, 2, 3].into_iter())
+        C::A(vec![1, 2, 3].into_iter())
     } else {
-        Either2::B([4, 5, 6].iter().cloned())
+        C::B([4, 5, 6].iter().cloned())
     }
 }
 
@@ -23,6 +27,17 @@ fn bar2(choose: bool) -> impl Iterator<Item = u32> {
         return vec![1, 2, 3].into_iter();
     } else {
         return [4, 5, 6].iter().cloned();
+    }
+}
+
+#[impl_sum]
+fn bar4(choose: usize) -> impl Iterator<Item = u32> {
+    match choose {
+        1 => return vec![1, 2, 3].into_iter(),
+        2 => return HashSet::<u32, RandomState>::from_iter([1, 2, 3].iter().cloned()).into_iter(),
+        3 => return [4, 5, 6].iter().cloned(),
+        4 => return Some(5).into_iter(),
+        _ => unimplemented!(),
     }
 }
 
@@ -49,6 +64,26 @@ fn main() {
 
     println!("bar2(false)");
     for i in bar2(false) {
+        println!("{}", i);
+    }
+
+    println!("bar4(1)");
+    for i in bar4(1) {
+        println!("{}", i);
+    }
+
+    println!("bar4(2)");
+    for i in bar4(2) {
+        println!("{}", i);
+    }
+
+    println!("bar4(3)");
+    for i in bar4(3) {
+        println!("{}", i);
+    }
+
+    println!("bar4(4)");
+    for i in bar4(4) {
         println!("{}", i);
     }
 }

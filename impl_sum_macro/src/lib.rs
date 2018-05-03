@@ -8,7 +8,7 @@ extern crate quote;
 use std::iter::FromIterator;
 use proc_macro::TokenStream;
 use proc_macro2::Span;
-use syn::{Item, Ident, ExprReturn, visit::Visit, visit_mut::VisitMut, Expr, ExprCall, Path, punctuated::Punctuated, ExprPath, token::Paren, PathSegment};
+use syn::{Item, ExprReturn, visit::Visit, visit_mut::VisitMut, Expr, ExprCall, Path, punctuated::Punctuated, ExprPath, token::Paren, PathSegment};
 use quote::ToTokens;
 
 struct Count<'a> {
@@ -18,6 +18,14 @@ struct Count<'a> {
 struct InsertVariants {
     unused: Vec<Path>,
 }
+
+macro_rules! stringified_array {
+    ($($i:ident)+) => ([$(stringify!($i)),+]);
+}
+
+const VARIANTS: &[&str] = &stringified_array! {
+    A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+};
 
 #[proc_macro_attribute]
 pub fn impl_sum(_attribute: TokenStream, function: TokenStream) -> TokenStream {
@@ -29,17 +37,15 @@ pub fn impl_sum(_attribute: TokenStream, function: TokenStream) -> TokenStream {
     let mut count = 0;
     Count { count: &mut count }.visit_item_fn(&function);
 
-    let ty = Ident::from(format!("Either{}", count));
-
-    const VARIANTS: &[&str] = &["A", "B"];
+    let ty = VARIANTS[count];
 
     let unused = VARIANTS.iter().take(count).map(|&variant| {
         Path {
             leading_colon: Some(Default::default()),
             segments: Punctuated::from_iter(vec![
-                PathSegment::from(Ident::from("impl_sum")),
+                PathSegment::from("impl_sum"),
                 PathSegment::from(ty),
-                PathSegment::from(Ident::from(variant)),
+                PathSegment::from(variant),
             ]),
         }
     }).collect();
