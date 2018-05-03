@@ -3,9 +3,14 @@ authors = ["Wim Looman <wim@nemo157.com>"]
 name = "impl_sum_macro"
 version = "0.1.0"
 
+[dependencies]
+proc-macro2 = "0.3.8"
+quote = "0.5.2"
+
+[dependencies.syn]
+default-features = false
+features = ["full", "visit", "visit-mut", "parsing", "printing", "extra-traits", "proc-macro", "clone-impls"]
+version = "0.13.4"
+
 [lib]
 proc-macro = true
-
-[dependencies]
-quote = "0.5.2"
-syn = "0.13.4"
