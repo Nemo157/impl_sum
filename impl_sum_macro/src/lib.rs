@@ -144,6 +144,9 @@ pub fn impl_sum_impl(attribute: TokenStream, item: TokenStream) -> TokenStream {
                         Some(FnArg::SelfRef(ArgSelfRef { mutability: None, .. })) => {
                             (quote!(*self), quote!(ref e))
                         }
+                        Some(FnArg::SelfValue(_)) => {
+                            (quote!(self), quote!(e))
+                        }
                         _ => {
                             panic!("Non-object safe traits are not supported");
                         }
