@@ -1,0 +1,11 @@
+[package]
+authors = ["Wim Looman <wim@nemo157.com>"]
+name = "impl_sum_macro"
+version = "0.1.0"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "0.5.2"
+syn = "0.13.4"

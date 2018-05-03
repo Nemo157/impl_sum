@@ -1,0 +1,11 @@
+[package]
+name = "impl_sum"
+version = "0.1.0"
+authors = ["Wim Looman <wim@nemo157.com>"]
+
+[workspace]
+members = [".", "impl_sum_macro"]
+
+[dependencies]
+impl_sum_macro = { path = "impl_sum_macro" }
+
