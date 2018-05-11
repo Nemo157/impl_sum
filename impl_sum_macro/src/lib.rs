@@ -8,7 +8,7 @@ extern crate quote;
 use std::iter::FromIterator;
 use proc_macro::TokenStream;
 use proc_macro2::Span;
-use syn::{Item, ExprReturn, visit::Visit, visit_mut::VisitMut, Expr, ExprCall, Path, punctuated::Punctuated, ExprPath, token::Paren, PathSegment, Ident, TraitItem, FnArg, ArgSelfRef, ArgCaptured, Pat};
+use syn::{Item, visit::{self, Visit}, fold::{self, Fold}, Expr, ExprCall, ExprMacro, Path, punctuated::Punctuated, ExprPath, token::Paren, PathSegment, Ident, TraitItem, FnArg, ArgSelfRef, ArgCaptured, Pat};
 use quote::ToTokens;
 use quote::{quote_spanned, quote_each_token, pounded_var_names, multi_zip_expr, nested_tuples_pat};
 use quote::quote;
@@ -52,39 +52,55 @@ pub fn impl_sum(_attribute: TokenStream, function: TokenStream) -> TokenStream {
         }
     }).collect();
 
-    InsertVariants { unused }.visit_item_fn_mut(&mut function);
+    function = InsertVariants { unused }.fold_item_fn(function);
 
     function.into_tokens().into()
 }
 
 impl<'a, 'ast> Visit<'ast> for Count<'a> {
-    fn visit_expr_return(&mut self, _expr_return: &'ast ExprReturn) {
-        *self.count += 1;
+    fn visit_expr_macro(&mut self, expr: &'ast ExprMacro) {
+        visit::visit_expr_macro(self, expr);
+        if expr.mac.path == Path::from("impl_sum") {
+            *self.count += 1;
+        }
     }
 
     fn visit_item(&mut self, _item: &'ast Item) {
+        // Stop visiting at item boundaries
     }
 }
 
-impl VisitMut for InsertVariants {
-    fn visit_expr_return_mut(&mut self, expr_return: &mut ExprReturn) {
-        let variant = self.unused.pop().expect("exceeded max number of variants");
+impl Fold for InsertVariants {
+    fn fold_expr(&mut self, expr: Expr) -> Expr {
+        match fold::fold_expr(self, expr) {
+            Expr::Macro(expr) => {
+                if expr.mac.path == Path::from("impl_sum") {
+                    let variant = self.unused.pop().expect("exceeded max number of variants");
 
-        expr_return.expr = expr_return.expr.take().map(|expr| {
-            Box::new(Expr::Call(ExprCall {
-                attrs: vec![],
-                func: Box::new(Expr::Path(ExprPath {
-                    attrs: vec![],
-                    qself: None,
-                    path: variant,
-                })),
-                paren_token: Paren(Span::call_site()),
-                args: Punctuated::from_iter(Some(*expr)),
-            }))
-        });
+                    let inner: Expr = syn::parse(expr.mac.tts.into())
+                        .expect("failed to parse tokens as an expression");
+
+                    Expr::Call(ExprCall {
+                        attrs: vec![],
+                        func: Box::new(Expr::Path(ExprPath {
+                            attrs: vec![],
+                            qself: None,
+                            path: variant,
+                        })),
+                        paren_token: Paren(Span::call_site()),
+                        args: Punctuated::from_iter(Some(inner)),
+                    })
+                } else {
+                    Expr::Macro(expr)
+                }
+            }
+            expr => expr
+        }
     }
 
-    fn visit_item_mut(&mut self, _item: &mut Item) {
+    fn fold_item(&mut self, item: Item) -> Item {
+        // Stop visiting at item boundaries
+        item
     }
 }
 

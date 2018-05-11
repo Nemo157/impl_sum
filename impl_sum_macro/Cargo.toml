@@ -9,7 +9,7 @@ quote = "0.5.2"
 
 [dependencies.syn]
 default-features = false
-features = ["full", "visit", "visit-mut", "parsing", "printing", "extra-traits", "proc-macro", "clone-impls"]
+features = ["full", "visit", "fold", "parsing", "printing", "extra-traits", "proc-macro", "clone-impls"]
 version = "0.13.4"
 
 [lib]

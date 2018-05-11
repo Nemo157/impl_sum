@@ -24,19 +24,19 @@ fn bar(choose: bool) -> impl Iterator<Item = u32> {
 #[impl_sum]
 fn bar2(choose: bool) -> impl Iterator<Item = u32> {
     if choose {
-        return vec![1, 2, 3].into_iter();
+        impl_sum!(vec![1, 2, 3].into_iter())
     } else {
-        return [4, 5, 6].iter().cloned();
+        impl_sum!([4, 5, 6].iter().cloned())
     }
 }
 
 #[impl_sum]
 fn bar4(choose: usize) -> impl Iterator<Item = u32> {
     match choose {
-        1 => return vec![1, 2, 3].into_iter(),
-        2 => return HashSet::<u32, RandomState>::from_iter([1, 2, 3].iter().cloned()).into_iter(),
-        3 => return [4, 5, 6].iter().cloned(),
-        4 => return Some(5).into_iter(),
+        1 => impl_sum!(vec![1, 2, 3].into_iter()),
+        2 => impl_sum!(HashSet::<u32, RandomState>::from_iter([1, 2, 3].iter().cloned()).into_iter()),
+        3 => impl_sum!([4, 5, 6].iter().cloned()),
+        4 => impl_sum!(Some(5).into_iter()),
         _ => unimplemented!(),
     }
 }
